@@ -1,0 +1,83 @@
+{
+  "name": "Link generation sub workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://leave-request-automation.onrender.com/generate-links",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Request_ID",
+              "value": "={{ $json.body['Request_ID'] }}"
+            },
+            {
+              "name": "Employee_ID",
+              "value": "={{ $json.body['Employee_ID'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "741e67af-b09a-4f6b-befc-7410031ed0ed",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "o8Y6qKKr8uAXLUKT",
+          "name": "Custom Auth account for my fastapi backend"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "1b925d95-2f71-40cc-b3fb-998b157dbe21",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a2584f46-7cbc-4026-9ceb-3b1fabb4b0fb",
+  "meta": {
+    "instanceId": "2538349f66d29698388396000fdb0bf1acd2038e4b73dfe85e49f8bd134970a3"
+  },
+  "nodeGroups": [],
+  "id": "i6wx3Q07JduS7FXf",
+  "tags": []
+}
