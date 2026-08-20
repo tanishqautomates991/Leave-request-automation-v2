@@ -926,7 +926,7 @@ The business problem remained the same; the engineering objective changed.
 
 ## Demo
 
-
+You can see the demo walkthrough here 👇🏼
 
 ['/docs/demo-v2-path2-walkthrough.md'](./docs/demo-v2-path2-walkthrough.md)
 
