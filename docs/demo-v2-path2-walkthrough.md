@@ -36,7 +36,7 @@ This demo traces a single request from a new employee — since no cache history
 *Step 6: Agent Tool — Cache Memory Update Output*
 > The Agent's Cache Memory Update tool call output.
 
-[![Step 7: Agent Tool — Document Analysis Output](screenshots/step-07-agent-tool-document-analysis-output.png)](screenshots/step-07-agent-tool-document-analysis-output.png)
+[![Step 7: Agent Tool — Document Analysis Output](screenshots/step-07-agent-tool-document-analysis.png)](screenshots/step-07-agent-tool-document-analysis.png)
 
 *Step 7: Agent Tool — Document Analysis Output*
 > The Agent's document-analysis tool call output, as returned from the document analysis sub-workflow.
