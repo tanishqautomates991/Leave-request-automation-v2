@@ -928,7 +928,7 @@ The business problem remained the same; the engineering objective changed.
 
 
 
-docs/demo-v2-path2-walkthrough.md
+['docs/demo-v2-path2-walkthrough.md'](.docs/demo-v2-path2-walkthrough.md)
 
 
 
