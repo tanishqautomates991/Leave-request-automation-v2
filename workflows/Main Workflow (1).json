@@ -1,0 +1,2251 @@
+{
+  "name": "Main Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7577df2c-12a0-43b4-91c6-4411e2d28a39",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1568,
+        320
+      ],
+      "id": "1adcc1a2-a9fb-4371-9df3-04c856c7497f",
+      "name": "Webhook",
+      "webhookId": "7577df2c-12a0-43b4-91c6-4411e2d28a39"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "78efa890-e55c-4ed8-9583-41c0bbdf00e3",
+              "leftValue": "={{ $('Webhook').item.json.body[\"Full Name\"] }}",
+              "rightValue": "={{ $json[\"Full Name\"] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "95463acf-ef24-423f-93d8-5a0eb082622f",
+              "leftValue": "={{ $('Webhook').item.json.body.Department }}",
+              "rightValue": "={{ $json.Department }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "a5b97806-4a18-41a9-97ca-498283fa3d22",
+              "leftValue": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+              "rightValue": "={{ $json[\"Email Address\"] }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -896,
+        128
+      ],
+      "id": "fb58d225-7720-4cc9-94aa-e9ff3baad3b7",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+        "subject": "Request rejected due to credentials mismatch",
+        "emailType": "text",
+        "message": "=Dear {{ $('Webhook').item.json.body[\"Full Name\"] }},\n\nYour leave request has been automatically rejected because one or more submitted details could not be validated.  \n\nExamples of invalid information include:  \n\n- Employee Name does not match the Employee ID. \n\n- Department does not match the employee records. \n\n- Invalid or mismatched email address. \n\n- Other incorrect or inconsistent information.  \n\nPlease review your submission, correct the invalid entries, and submit a new leave request.  \n\nIf you believe the information you provided is correct, please contact the HR department for assistance.  \nRegards, \nHR Team ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        224
+      ],
+      "id": "74251f2d-9bdc-48b3-966d-337ad45bebc4",
+      "name": "Send a message",
+      "webhookId": "18c61d14-4fc1-472a-8d84-95d6917c435e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "43nZBS8dCUJ19dxI",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Tool:Invalid Log Entries Sheet\nUse:Whenever leave request violates any business rule/policy in system instructions.\nTriggers:LLM detects violation (e.g.,days exceed limit, missing doc, invalid dates, policy breach).\nInstructions:\n-Evaluate request strictly against provided policies.No invented or ignored rules.\n-If violation found,call tool to insert new record using Employee ID & webhook data.\n-Populate 'Rejection Reason' column with factual,concise reason of STRICTLY 4–6 words.\n-No prose,explanations,or recommendations in Rejection Reason field.\n-If multiple violations exist, record ONLY the primary reason.\n-If no rules are violated,do NOT use this tool.",
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Invalid entries logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Employee ID": "={{ $('Webhook').item.json.body[\"Employee ID\"] }}",
+            "Full Name": "={{ $('Webhook').item.json.body[\"Full Name\"] }}",
+            "Department": "={{ $('Webhook').item.json.body.Department }}",
+            "Email Address": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+            "Leave Type": "={{ $('Webhook').item.json.body[\"Leave Type\"] }}",
+            "Start Date": "={{ $('Webhook').item.json.body[\"Start Date\"] }}",
+            "End Date": "={{ $('Webhook').item.json.body[\"End Date\"] }}",
+            "Reason for Leave": "={{ $('Webhook').item.json.body[\"Reason for Leave\"] }}",
+            "Supporting Document": "={{ $('Webhook').item.json.body[\"Upload Supporting Document\"] || \"Not Uploaded\" }}",
+            "Leave Days": "={{ $('Webhook').item.json.body[\"Leave Days\"] }}",
+            "Rejection Reason": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Rejection_Reason', `Fill the appropriate reason in 4 to 6 words`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Employee ID",
+              "displayName": "Employee ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Type",
+              "displayName": "Leave Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start Date",
+              "displayName": "Start Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End Date",
+              "displayName": "End Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason for Leave",
+              "displayName": "Reason for Leave",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Supporting Document",
+              "displayName": "Supporting Document",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Days",
+              "displayName": "Leave Days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rejection Reason",
+              "displayName": "Rejection Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        464
+      ],
+      "id": "d5ee9c42-7225-40f1-abee-326c6afbf034",
+      "name": "Invalid log entries sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Tool Description:Cache Memory Update\nUse ONLY after AI review is complete and BEFORE 'FastAPI Custom Backend'.\nPrerequisites:\n-'Leave Reason Summary' generated.\n-'Urgency Level' determined.\n-Supporting document (if applicable) analyzed for authenticity/relevance.\nPurpose:Update the corresponding Google Sheets record and retrieve identifiers for approval-link generation.\nInstructions:\n-Use Employee ID from Webhook to locate the Google Sheets record.\n-Retrieve Request ID (Google Sheets row number;STRICT integer) and Employee ID (string).\n-Update ONLY that record's 'Past Approval Status' to \"Pending\".Do NOT modify other fields.\n-Return ONLY Request ID + Employee ID required by 'FastAPI Custom Backend'.\n-No match OR multiple matches->STOP and report issue;NEVER guess.",
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 510717754,
+          "mode": "list",
+          "cachedResultName": "Sheet as my Data Store",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=510717754"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Status', `Strict enum : \"pending\", \"approved\", \"rejected\"`, 'string') }}",
+            "Employee ID": "={{ $('Webhook').item.json.body[\"Employee ID\"] }}",
+            "Full Name": "={{ $('Webhook').item.json.body[\"Full Name\"] }}",
+            "Department": "={{ $('Webhook').item.json.body.Department }}",
+            "Email Address": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+            "Start Date": "={{ $('Webhook').item.json.body[\"Start Date\"] }}",
+            "End Date": "={{ $('Webhook').item.json.body[\"End Date\"] }}"
+          },
+          "matchingColumns": [
+            "Employee ID"
+          ],
+          "schema": [
+            {
+              "id": "Employee ID",
+              "displayName": "Employee ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start Date",
+              "displayName": "Start Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End Date",
+              "displayName": "End Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        464
+      ],
+      "id": "6b920a3d-c4ad-4776-bf9a-e0a086f8527c",
+      "name": "cache memory update",
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Send a message using this gmail tool to the manager explaining the leave request info in short and professional way.",
+        "sendTo": "forbiddenmindsetx@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `You are an HR email drafting assistant.\n\nYour task is to draft a professional leave approval request email for the reporting manager using the information available from previous tool outputs.\n\nInstructions:\n- Collect all required information from the available tool outputs.\n- Do not ask the user for any missing information.\n- Do not invent or assume any values. If any required field is unavailable, omit only that field.\n- Write a concise and professional email.\n- Include:\n  - Employee ID\n  - Leave Type\n  - Start Date\n  - End Date\n  - Total Leave Days\n  - AI-generated Leave Reason Summary\n  - AI-generated Urgency Level\n  - Approval URL\n  - Rejection URL\n- Preserve both URLs exactly as received from the tools.\n- Clearly label each section.\n- End the email with a polite request asking the manager to review the request and approve or reject it at their earliest convenience.\n- Return only the email body as plain text. Do not use Markdown, code fences, explanations, or placeholders.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        464
+      ],
+      "id": "7761b4a7-2ad2-4bff-af45-e60d49b915a6",
+      "name": "Gmail Tool to inform manager",
+      "webhookId": "9faa85b6-c0af-40ef-a2ad-8fea134e8438",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "43nZBS8dCUJ19dxI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bd60b7a1-a3d3-4ba2-86f4-7b7c13ba2997",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1568,
+        928
+      ],
+      "id": "96a90309-a6b2-4c25-a5dc-6b246069068f",
+      "name": "backend confirmation call",
+      "webhookId": "bd60b7a1-a3d3-4ba2-86f4-7b7c13ba2997"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3165ef7d-bae8-4a5f-ab15-b9a98256b39d",
+              "leftValue": "={{ $json[\"Employee ID\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1120,
+        320
+      ],
+      "id": "c897e401-e9de-434a-840a-47b82a2cb011",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Invalid entries logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Employee ID": "={{ $('Webhook').item.json.body[\"Employee ID\"] }}",
+            "Full Name": "={{ $('Webhook').item.json.body[\"Full Name\"] }}",
+            "Department": "={{ $('Webhook').item.json.body.Department }}",
+            "Email Address": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+            "Leave Type": "={{ $('Webhook').item.json.body[\"Leave Type\"] }}",
+            "End Date": "={{ $('Webhook').item.json.body[\"End Date\"] }}",
+            "Start Date": "={{ $('Webhook').item.json.body[\"Start Date\"] }}",
+            "Reason for Leave": "={{ $('Webhook').item.json.body[\"Reason for Leave\"] }}",
+            "Supporting Document": "={{ $('Webhook').item.json.body[\"Upload Supporting Document\"] || \"Not uploaded\" }}",
+            "Leave Days": "={{ $('Webhook').item.json.body[\"Leave Days\"] }}",
+            "Rejection Reason": "Invalid entries"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Employee ID",
+              "displayName": "Employee ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Type",
+              "displayName": "Leave Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start Date",
+              "displayName": "Start Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End Date",
+              "displayName": "End Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason for Leave",
+              "displayName": "Reason for Leave",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Supporting Document",
+              "displayName": "Supporting Document",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Days",
+              "displayName": "Leave Days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rejection Reason",
+              "displayName": "Rejection Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        224
+      ],
+      "id": "34140eee-91ee-4201-97c9-f8525a32adaa",
+      "name": "Append invalid entries",
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e7c11a7e-fe56-4363-9c21-c4faf9cd64fa",
+              "leftValue": "={{ $json[\"Employee ID\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        512
+      ],
+      "id": "264b1b13-442a-49b6-be04-cb412657be15",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+        "subject": "Request rejected due to credentials mismatch",
+        "emailType": "text",
+        "message": "=Dear {{ $('Webhook').item.json.body[\"Full Name\"] }},\n\nYour leave request has been automatically rejected because one or more submitted details could not be validated.  \n\nExamples of invalid information include:  \n\n- Employee Name does not match the Employee ID. \n\n- Department does not match the employee records. \n\n- Invalid or mismatched email address. \n\n- Other incorrect or inconsistent information.  \n\nPlease review your submission, correct the invalid entries, and submit a new leave request.  \n\nIf you believe the information you provided is correct, please contact the HR department for assistance.  \nRegards, \nHR Team ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        608
+      ],
+      "id": "8defa8a8-8514-416e-8484-19ccdf6cd76d",
+      "name": "Send a message1",
+      "webhookId": "18c61d14-4fc1-472a-8d84-95d6917c435e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "43nZBS8dCUJ19dxI",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Invalid entries logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Employee ID": "={{ $('Webhook').item.json.body[\"Employee ID\"] }}",
+            "Full Name": "={{ $('Webhook').item.json.body[\"Full Name\"] }}",
+            "Department": "={{ $('Webhook').item.json.body.Department }}",
+            "Email Address": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+            "Leave Type": "={{ $('Webhook').item.json.body[\"Leave Type\"] }}",
+            "End Date": "={{ $('Webhook').item.json.body[\"End Date\"] }}",
+            "Start Date": "={{ $('Webhook').item.json.body[\"Start Date\"] }}",
+            "Reason for Leave": "={{ $('Webhook').item.json.body[\"Reason for Leave\"] }}",
+            "Supporting Document": "={{ $('Webhook').item.json.body[\"Upload Supporting Document\"] || \"Not uploaded\" }}",
+            "Leave Days": "={{ $('Webhook').item.json.body[\"Leave Days\"] }}",
+            "Rejection Reason": "Invalid entries"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Employee ID",
+              "displayName": "Employee ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Type",
+              "displayName": "Leave Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start Date",
+              "displayName": "Start Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End Date",
+              "displayName": "End Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason for Leave",
+              "displayName": "Reason for Leave",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Supporting Document",
+              "displayName": "Supporting Document",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Days",
+              "displayName": "Leave Days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rejection Reason",
+              "displayName": "Rejection Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        608
+      ],
+      "id": "498834d6-7917-473d-8948-f05131bd0a56",
+      "name": "Append invalid entries1",
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9a67624-ed95-4411-9f2b-8a49406422e9",
+              "leftValue": "={{ $('Webhook').item.json.body[\"Full Name\"] }}",
+              "rightValue": "={{ $('Employee Database').item.json[\"Full Name\"] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "6b420cdb-45f2-4d61-8ba2-0c779ac774a1",
+              "leftValue": "={{ $('Webhook').item.json.body[\"Department\"] }}",
+              "rightValue": "={{ $('Employee Database').item.json.Department }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "befb6b1e-2a08-4406-92e3-303584182040",
+              "leftValue": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+              "rightValue": "={{ $('Employee Database').item.json[\"Email Address\"] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        496
+      ],
+      "id": "ca536a06-b6db-4dbe-b571-44135df2bcf1",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Tool:Update the Approval Status in Manager's Approval Records\nUse:ONLY  use in this case:\nUpdates ONLY the target record 'Status' column (pending, approved, rejected).No overwrites or guessing.\nLeave Request (Post-validation, PRE-manager email):\nSet 'Status' to \"pending\".Do NOT mark approved/rejected yet.\n",
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1901030263,
+          "mode": "list",
+          "cachedResultName": "Manager's Approval records",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=1901030263"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Employee ID": "={{ $('Webhook').item.json.body[\"Employee ID\"] }}",
+            "Full Name": "={{ $('Webhook').item.json.body[\"Full Name\"] }}",
+            "Department": "={{ $('Webhook').item.json.body.Department }}",
+            "Email Address": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+            "Leave Type": "={{ $('Webhook').item.json.body[\"Leave Type\"] }}",
+            "Start Date": "={{ $('Webhook').item.json.body[\"Start Date\"] }}",
+            "End Date": "={{ $('Webhook').item.json.body[\"End Date\"] }}",
+            "Reason for Leave": "={{ $('Webhook').item.json.body[\"Reason for Leave\"] }}",
+            "Upload Supporting Document": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Upload_Supporting_Document', `Just write 'Not Uploaded' if the field is empty`, 'string') }}",
+            "Leave Days": "={{ $('Webhook').item.json.body[\"Leave Days\"] }}",
+            "Status": "=Approval pending",
+            "Request_ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Request_ID__using_to_match_', `Use the row number`, 'string') }}"
+          },
+          "matchingColumns": [
+            "Request_ID"
+          ],
+          "schema": [
+            {
+              "id": "Request_ID",
+              "displayName": "Request_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Employee ID",
+              "displayName": "Employee ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Leave Type",
+              "displayName": "Leave Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Start Date",
+              "displayName": "Start Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "End Date",
+              "displayName": "End Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Reason for Leave",
+              "displayName": "Reason for Leave",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Upload Supporting Document",
+              "displayName": "Upload Supporting Document",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Leave Days",
+              "displayName": "Leave Days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        464
+      ],
+      "id": "40ebc743-932b-471d-927f-4b43c71c2312",
+      "name": "Update the approval status in manager's approval records",
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "list",
+          "cachedResultName": "Leave request Automation System",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 510717754,
+          "mode": "list",
+          "cachedResultName": "Sheet as my Data Store",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=510717754"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Employee ID",
+              "lookupValue": "={{ $json.body[\"Employee ID\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1344,
+        320
+      ],
+      "id": "e7e90289-aed9-4104-b6fc-55402df30497",
+      "name": "Cache memory check",
+      "retryOnFail": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://emailreputation.abstractapi.com/v1/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $('Webhook').item.json.body[\"Email Address\"] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -224,
+        32
+      ],
+      "id": "ecf2788e-236a-448f-86ca-9acb1a695ad7",
+      "name": "Email validator 1",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "o8Y6qKKr8uAXLUKT",
+          "name": "Custom Auth account for my fastapi backend"
+        },
+        "httpBearerAuth": {
+          "id": "AvBnWq1YinSEx1iN",
+          "name": "Bearer Auth account for abstract api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://emailreputation.abstractapi.com/v1/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $('Webhook').item.json.body[\"Email Address\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -224,
+        416
+      ],
+      "id": "3b25b219-0fc2-405b-be27-ecb5b47ce1f0",
+      "name": "Email validator 2",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "o8Y6qKKr8uAXLUKT",
+          "name": "Custom Auth account for my fastapi backend"
+        },
+        "httpBearerAuth": {
+          "id": "AvBnWq1YinSEx1iN",
+          "name": "Bearer Auth account for abstract api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "list",
+          "cachedResultName": "Leave request Automation System",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 836031022,
+          "mode": "list",
+          "cachedResultName": "Employee Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=836031022"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Employee ID",
+              "lookupValue": "={{ $('Webhook').item.json.body[\"Employee ID\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -896,
+        512
+      ],
+      "id": "27069608-9523-42be-8566-9f6606de842f",
+      "name": "Employee Database",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fcb66547-3aa0-4d2a-aafb-03bffad424aa",
+              "name": "webhook data body",
+              "value": "={{ $('Webhook').item.json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "effd2b66-097c-476b-b31a-e46b6b5a4aed",
+              "name": "=cache memory check node",
+              "value": "={{ $('Cache memory check').all() }}",
+              "type": "array"
+            },
+            {
+              "id": "8d17012b-43ab-45da-9fed-5fd6d8c29757",
+              "name": "email validator node",
+              "value": "=status : {{ $json.email_deliverability.status_detail }}, status_detail : {{ $json.email_deliverability.status }}, is_format_valid : {{ $json.email_deliverability.is_format_valid }}, is_disposable : {{ $json.email_quality.is_disposable }}",
+              "type": "string"
+            },
+            {
+              "id": "7941e67f-5790-4cd9-8467-ed3295582c1f",
+              "name": "current date",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        0,
+        32
+      ],
+      "id": "02b2bcfe-11b0-4b7b-9290-0193ec256e61",
+      "name": "Path 1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fcb66547-3aa0-4d2a-aafb-03bffad424aa",
+              "name": "webhook data body",
+              "value": "={{ $('Webhook').item.json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "effd2b66-097c-476b-b31a-e46b6b5a4aed",
+              "name": "Employee Database",
+              "value": "={{ $('Employee Database').all() }}",
+              "type": "array"
+            },
+            {
+              "id": "8d17012b-43ab-45da-9fed-5fd6d8c29757",
+              "name": "email validator node",
+              "value": "=status : {{ $json.email_deliverability.status }}, status_detail : {{ $json.email_deliverability.status_detail }}, is_format_valid : {{ $json.email_deliverability.is_format_valid }}, is_disposable : {{ $json.email_quality.is_disposable }}",
+              "type": "string"
+            },
+            {
+              "id": "00ebb630-b6f7-4a82-afa4-8c7a636bb198",
+              "name": "current date",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        0,
+        416
+      ],
+      "id": "d9d27db0-bbe5-4c4c-93b0-c6e88d498e54",
+      "name": "Path 2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=ROLE\nn8n Leave Request Agent. Validate, triage, route (Path 1/2). Managers make final decisions. Stop after employee or terminal admin notification. Be precise, literal; never infer missing data.\n​GLOBAL PRINCIPLES\n​Truth Source: Webhook for dates, Leave Days (never calculate/replace), docs, request details. Cache/DB for identity/history only. Never override webhook data.\n​No Auto-Approval: Set \"Pending\", notify manager/employee.\n​Path Isolation: Never mix Path 1 & 2 rules.\n​Tool Explanations: Output 10–15 word factual reason post-tool call (unless terminal failure). Do not expose internal chain-of-thought.\n​Data Integrity: Treat missing fields as missing. No hallucinations. Rejection reasons must be factual & short.\n​Email Tools (Strictly isolated): Manager Gmail (managers), Employee Gmail (employees), Notify to admin (HR/admin failures). Format cleanly, proper paragraphs, no mid-sentence breaks, start with appropriate greeting (e.g., \"Dear Manager,\").\n​STEP 0: IDENTIFY PATH\n​Path 1 (Returning): Cache Check + Webhook + Email Validator.\n​Path 2 (New): Employee DB + Webhook + Email Validator (No Status field exists/expected).\n​UNIVERSAL VALIDATION (Use webhook data only, apply POST-email check, PRE-Main Sequence)\n​Start Date < End Date.\n​Start Date >= Current Date + 2 calendar days. (Strictly use webhook's \"current date\" field; never determine it yourself).\n​Leave Days <= 30.\n​Supporting Document: Optional if < 5 days. Mandatory if >= 5 days (missing = reject & stop).\n​PATH ROUTING\n​Invalid/Disposable Email (Both Paths): Call Invalid Log Entries (5–8 word factual rejection) -> reject -> STOP.\n​Path 2 (Valid Email): -> Universal Validation -> Main Sequence.\n​Path 1 (Valid Email): Check Cache Memory Status:\n​\"pending\" -> Employee Gmail wait notice -> STOP.\n​\"rejected\" -> Universal Validation -> Main Sequence (20-day rule N/A).\n​\"approved\" -> New Start Date must be >= 20 days after cached End Date. Gap < 20 days: Invalid Log Entries -> Employee Gmail rejection -> STOP. Gap >= 20 days: Universal Validation -> Main Sequence.\n​MAIN SEQUENCE\n​7.1 Document Analysis\nIf webhook file URL exists, call get the file (raw URL only, never alter, never request Base64).\n​If document_analysis_successful: true -> Compare doc content to leave reason for document_relevancy. Never assume relevance based merely on authenticity/positive analysis. Output strict JSON:\n{\"leave_reason_summary\": \"max 20 words\", \"urgency\": \"Low|Medium|High\", \"document_relevancy\": true/false, \"document_authenticity\": true/false}\n​If document_analysis_successful: false -> Do NOT invent relevancy/authenticity. Output strict JSON:\n{\"leave_reason_summary\": \"max 20 words\", \"urgency\": \"Low|Medium|High\"}\n(Action: Do not approve/reject based on this failure. In 7.4 Manager Email, explicitly state: \"Document analysis wasn't completed correctly — please review the document carefully yourself\" & include link).\n​If no doc & Leave Days < 5: Output exact JSON, no extra text: {\"leave_reason_summary\": \"max 20 words\", \"urgency\": \"Low|Medium|High\"}\n​7.2 Cache Update\nCall Cache Memory Update. Set Status = \"Pending\". (Request_ID = row number from Path 1/2 lookup).\n​7.3 Approval-Link Generation\nCall HTTP Request (approval-link tool) with Request_ID (integer) & Employee_ID (string).\n​\"success\": Proceed immediately to 7.4.\n​\"permanent\": STOP immediately. Do NOT retry. Do NOT proceed to 7.4+. Call Notify to admin with: Failure statement, \"failure_type = permanent\", webhook details, Path (1/2), summary, urgency, doc details, IDs, & \"HR must manually coordinate with manager and update Google Sheets.\"\n​\"transient\": Retry up to 7 times with exact same arguments.\n​If retry = \"success\" -> Proceed to 7.4.\n​If retry = \"permanent\" -> STOP, notify admin (as above).\n​If 7 retries fail -> STOP, call Notify to admin stating failure after retries, \"failure_type = transient\", retry count, & all details listed in \"permanent\" above.\n​7.4 Notify Manager\nExecute ONLY if 7.3 = \"success\". Call Manager Gmail. Start with \"Dear Manager,\". Include employee details, summary, urgency, doc info (or analysis-failed note), & approval/rejection links.\n​7.5 Update Manager Records\nCall Update the approval status in manager's records. Create entry (Path 2) or update (Path 1). Pass Request_ID & Upload Supporting Document accurately. NEVER set, modify, or override the Status field (hardcoded server-side to \"Approval Pending\").\n​7.6 Notify Employee\nCall Information to employee about request update. Stop upon success.\n​ABSOLUTE CONSTRAINTS\n​Never check Path 2 Status.\n​Never swap Request_ID/Employee_ID types.\n​Never expect row numbers from update tools.\n​Never output urgency outside \"Low\", \"Medium\", or \"High\".\n​Never fabricate rejection reasons.\n​Never continue execution after a terminal rejection or terminal approval-link failure.\nCURRENT WORKFLOW DETAILS:\n{{ JSON.stringify($json) }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "maxIterations": 18,
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        720,
+        176
+      ],
+      "id": "cd362f02-17b8-4b0b-923e-9cc7c492734d",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "list",
+          "cachedResultName": "Leave request Automation System",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1901030263,
+          "mode": "list",
+          "cachedResultName": "Manager's Approval records",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=1901030263"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Request_ID",
+              "lookupValue": "={{ $json.body.Request_ID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1344,
+        928
+      ],
+      "id": "a124c25c-8947-4e06-bfab-2b669a153d80",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"Approval_Status\": \"Already processed\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -896,
+        1024
+      ],
+      "id": "cd436ff8-b8da-437a-9b14-a850f1b212b5",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "93f6da47-dfe2-4919-a029-dbd576b55bb7",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "=Approval pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1120,
+        928
+      ],
+      "id": "27def2f9-b733-4f9e-98f5-16e421fb377b",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4",
+          "mode": "list",
+          "cachedResultName": "Leave request Automation System",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1901030263,
+          "mode": "list",
+          "cachedResultName": "Manager's Approval records",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RibRT9lp2v5FMWqJJ9SNRKuqoMFlWpiYNc-19v0bD_4/edit#gid=1901030263"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Request_ID": "={{ $('Get row(s) in sheet').item.json.Request_ID }}",
+            "Status": "={{ $('backend confirmation call').item.json.body.Approval_Status }}"
+          },
+          "matchingColumns": [
+            "Request_ID"
+          ],
+          "schema": [
+            {
+              "id": "Request_ID",
+              "displayName": "Request_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Employee ID",
+              "displayName": "Employee ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Type",
+              "displayName": "Leave Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start Date",
+              "displayName": "Start Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End Date",
+              "displayName": "End Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason for Leave",
+              "displayName": "Reason for Leave",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Upload Supporting Document",
+              "displayName": "Upload Supporting Document",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Leave Days",
+              "displayName": "Leave Days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -896,
+        832
+      ],
+      "id": "4e52eb0d-354e-46b8-b544-f9978dad55bc",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"Approval_Status\": \"Ok\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -672,
+        832
+      ],
+      "id": "2e40083a-e82f-4026-8118-692d6a629756",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request with file URL to get the document analysis  return as response data.",
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/90f713d0-e4df-4ae8-84ad-178fd77eab37",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file url",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `Paste the exact file url received from webhook node.`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1008,
+        464
+      ],
+      "id": "2c175c8a-6fe8-4b2c-b46b-5af7625ff2a3",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "nvidia/nemotron-3-ultra-550b-a55b",
+          "mode": "list",
+          "cachedResultName": "nvidia/nemotron-3-ultra-550b-a55b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.2,
+          "maxRetries": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        464
+      ],
+      "id": "70bc4ff0-980d-4fc7-b4fa-43aa3ac84d07",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "4lGjeeJtKVXm2MSB",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "tanishq.ai.automation@gmail.com",
+        "subject": "AI Agent Failure -- Action required",
+        "emailType": "text",
+        "message": "Dear Admin,\nI am writing to inform you that the AI agent has failed and is currently not operational.\n\nIt appears that there is an issue with the workflow that needs immediate investigation. To resolve this and restore normal functionality, your attention is required to review the logs and error details to initiate the necessary troubleshooting steps.  \n\nPlease prioritize this matter to minimize any downtime. \n\nRegards\nLeave Request Automation",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        192
+      ],
+      "id": "f9966517-371f-49f9-be1a-ff031dc96bb5",
+      "name": "Send a message2",
+      "webhookId": "efe032ca-c290-4f62-bc13-1a8569593145",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "43nZBS8dCUJ19dxI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "tanishq.ai.automation@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', `Suitable short subject`, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `Neat and clean short and professional email to admin.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1136,
+        464
+      ],
+      "id": "d955a04d-45e4-4795-8c15-a9d80c460c76",
+      "name": "Notify to admin",
+      "webhookId": "f657bdd3-3822-4f45-96b5-419b921fab2a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "43nZBS8dCUJ19dxI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Tool:Information to Employee About Request Update\n\nHard Rules:\n-Manager notification MUST happen before calling this tool (if going to manager).\n-Never call immediately after 'Cache Memory Update' (status change != workflow complete).\n-Always use employee email from Webhook.Send exactly ONE email per execution.No guessing.\n\nSource Handling:\n1.Unique Request (Path 2):\nRun workflow -> Cache Update ('pending') -> FastAPI Link Gen -> Notify Manager -> Use tool to email employee: \"submitted successfully, forwarded to manager, no action required\".\n\n2.Duplicate Request (Path 1):\nCheck 'cache memory check' lowercase status first:\n- pending: Do NOT route to backend/manager.Use tool to email employee: \"previous request is already awaiting response, duplicate request, must wait for decision\" -> STOP.\n- approved/rejected: Run validations.If passed -> Cache Update ('pending') -> FastAPI Backend -> Notify Manager -> Use tool to email employee: \"request forwarded successfully\".\n",
+        "sendTo": "={{ $('Webhook').item.json.body[\"Email Address\"] }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `Make it clean, short, professional and factually correct.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        464
+      ],
+      "id": "1c071cc8-98d3-483a-b518-2e8af8f1ddd3",
+      "name": "Employee Gmail",
+      "webhookId": "4556bb22-7c34-4403-85c4-dc4b3fae4835",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "43nZBS8dCUJ19dxI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request to this custom backend and returns the response data with two separate approval links and execution status field. Send Exactly two body parameters:\nRequest_ID AND Employee_ID",
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/6caa2dd2-a880-426f-9147-2eb38299f110",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Request_ID",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `Get the row number from 'cache memory update' node or 'Employee Database' node.`, 'string') }}"
+            },
+            {
+              "name": "Employee_ID",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `Get this value using the 'Webhook' node data. `, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1392,
+        464
+      ],
+      "id": "adbf5925-f373-4a5d-b9ce-a8234e4a42fd",
+      "name": "HTTP Request ( approval-link tool )"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"executed every step successfully\": \"false\",\n\t\"workflow trail\": \"Gmail server is down, could not notify the manager.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1520,
+        464
+      ],
+      "id": "5ec1e0c4-c25e-4044-a1af-67043ed819c9",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "nvidia/nemotron-3-ultra-550b-a55b",
+          "mode": "list",
+          "cachedResultName": "nvidia/nemotron-3-ultra-550b-a55b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.2,
+          "maxRetries": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        464
+      ],
+      "id": "43a25bae-f13f-44a9-bdd4-a8deb4e9d2c0",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "DXagoaGcFAAZNWjo",
+          "name": "OpenAI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "597e1bfd-fc4e-4518-a7fe-26e152aaab29",
+              "leftValue": "={{ $json.output[\"executed every step successfully\"] }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1008,
+        -64
+      ],
+      "id": "fe771719-a805-4554-9b9b-e6a921a3c5b7",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "sendTo": "tanishq.ai.automation@gmail.com",
+        "subject": "Leave Automation --Workflow Execution Incomplete",
+        "emailType": "text",
+        "message": "=Hi Admin\n\nThe Leave Request Automation Agent completed its execution, but the workflow did not complete every required step successfully.\n\nRequest ID: {{ $('Path 2').item.json[\"Employee Database\"][0].json.row_number }}\nEmployee ID: {{ $('Path 2').item.json[\"Employee Database\"][0].json[\"Employee ID\"] }}\nExecution Status : Incomplete\n\nWorkflow Execution Trail: {{ $('AI Agent').item.json.output[\"workflow trail\"] }}\n\n\nThe workflow has been stopped to prevent further processing.\nPlease review the execution trail and take the required action manually.\n\nRegards\nLeave Request Automation ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        -80
+      ],
+      "id": "b7fcc6bb-712f-4ee5-9b54-2ce71b7cd8a7",
+      "name": "Send a message3",
+      "webhookId": "a2632d93-6751-4a26-b461-4bfc19ec1734",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "43nZBS8dCUJ19dxI",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Cache memory check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Email validator 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid log entries sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cache memory update": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Tool to inform manager": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "backend confirmation call": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Employee Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append invalid entries": {
+      "main": [
+        []
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Append invalid entries1": {
+      "main": [
+        []
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Email validator 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update the approval status in manager's approval records": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache memory check": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email validator 1": {
+      "main": [
+        [
+          {
+            "node": "Path 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email validator 2": {
+      "main": [
+        [
+          {
+            "node": "Path 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Employee Database": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Path 1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Path 2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify to admin": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Employee Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request ( approval-link tool )": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append invalid entries",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Append invalid entries1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7e1bd54a-e81a-48ae-be02-54a762434e31",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2538349f66d29698388396000fdb0bf1acd2038e4b73dfe85e49f8bd134970a3"
+  },
+  "nodeGroups": [],
+  "id": "PEY2PnrRjwGfV08F",
+  "tags": []
+}

@@ -1,0 +1,421 @@
+{
+  "name": "document analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.body['file url'].split('=')[1] }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -752,
+        -176
+      ],
+      "id": "53d701f7-ac6f-49d8-aa38-e13d1e5d73ce",
+      "name": "Download file",
+      "retryOnFail": true,
+      "waitBetweenTries": 2500,
+      "credentials": {
+        "googleApi": {
+          "id": "FO5Hx5BGsZKc4hBH",
+          "name": "Service account for basic automation"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "90f713d0-e4df-4ae8-84ad-178fd77eab37",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -976,
+        -176
+      ],
+      "id": "f95b70ba-9a42-49ca-9b1e-caca438448ca",
+      "name": "Webhook",
+      "webhookId": "90f713d0-e4df-4ae8-84ad-178fd77eab37"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"document_analysis_succesful\" : \"true\",\n  \"document_analysis\": \"{{ $json.content.parts[0].text }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -304,
+        -304
+      ],
+      "id": "9c9a9fdb-d5b1-4bb4-8018-2dad8456020c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.6-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.6-flash"
+        },
+        "text": "Analyze only the provided document.\nReturn exactly **20–30 factual words** stating:\n1. What the document is..\n3. Whether it appears authentic or suspicious, based only on observable evidence.\n4. Reasoning behind the interpretation.\nDo not infer missing information.  ",
+        "inputType": "binary",
+        "options": {
+          "maxOutputTokens": 1000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -528,
+        -256
+      ],
+      "id": "b29cb4bb-1dce-4c0d-9be9-8652f33fd033",
+      "name": "Analyze document",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "n6YWiTfSO8pgxSVv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"document analysis successful\": \"false\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -304,
+        -80
+      ],
+      "id": "875467d3-4e68-48ec-a497-8662300d8fe0",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6caa2dd2-a880-426f-9147-2eb38299f110",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -976,
+        240
+      ],
+      "id": "5f7ed0cc-907c-4531-835e-3a7101a89bf2",
+      "name": "Webhook1",
+      "webhookId": "6caa2dd2-a880-426f-9147-2eb38299f110",
+      "notesInFlow": true,
+      "notes": "The trigger from Agent tool making an attempt to generate approval links"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"execution status\": \"failed\", \"failure type\": \"permanent\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -304,
+        144
+      ],
+      "id": "2b73c119-c59c-4b5f-a70c-c98ee2f3e8bd",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://leave-request-automation.onrender.com/generate-links",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Request_ID",
+              "value": "={{ $json.body.Request_ID }}"
+            },
+            {
+              "name": "Employee_ID",
+              "value": "={{ $json.body.Employee_ID }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -752,
+        240
+      ],
+      "id": "55127e11-a71a-4dee-a878-06d075800f57",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "o8Y6qKKr8uAXLUKT",
+          "name": "Custom Auth account for my fastapi backend"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "702214dd-6c5d-468e-a590-9f8ed4a616bd",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 399,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "40e072bd-8c00-4608-ae22-cd48ea848e17",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 500,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -528,
+        240
+      ],
+      "id": "47aaff60-bf4d-4c96-8bd0-7480238ea988",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7f84fb39-4382-484e-827d-e767ee637cf4",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 499,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        336
+      ],
+      "id": "aad35e12-c799-45f0-a68e-c9ccd4bb6e68",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"execution status\": \"successful\", \"approval link\" : \"{{ $json.body.approval_link }}\", \"rejection link\" : \"{{ $json.body.rejection_link }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -80,
+        432
+      ],
+      "id": "5133ef4c-d716-4a3b-89b7-1411b80fd71b",
+      "name": "Respond to Webhook5",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"execution status\": \"failed\", \"failure type\": \"transient\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -80,
+        240
+      ],
+      "id": "fa464024-8e49-4460-b725-72a36fada49b",
+      "name": "Respond to Webhook6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Analyze document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "28b1b8c4-eabb-465c-9198-f7f4982ac362",
+  "meta": {
+    "templateId": "1954",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2538349f66d29698388396000fdb0bf1acd2038e4b73dfe85e49f8bd134970a3"
+  },
+  "nodeGroups": [],
+  "id": "vvjAD88l1KappKWt",
+  "tags": []
+}
