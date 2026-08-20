@@ -928,7 +928,7 @@ The business problem remained the same; the engineering objective changed.
 
 
 
-*(To be added — demo materials live in a separate folder.)*
+docs/demo-v2-path2-walkthrough.md
 
 
 
